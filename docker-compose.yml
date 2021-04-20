@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  influxdb:
+    image: influxdb:1.8.4
+    container_name: local-influxdb
+    volumes:
+      - ./influxdb:/var/lib/influxdb
+    ports:
+      - 8086:8086
+
+  grafana:
+    image: grafana/grafana:7.1.1
+    ports:
+      - 8089:3000
+    user: "472"
+    volumes:
+      - ./grafana:/var/lib/grafana
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  mysql:
+     image: mysql
+     command: [--character-set-server=utf8, --default-authentication-plugin=mysql_native_password]
+     restart: always
+     environment:
+       MYSQL_DATABASE: grafana
+       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+     volumes:
+       - ./mysql/data:/var/lib/mysql
+       - ./mysql/sql:/docker-entrypoint-initdb.d
+     ports:
+       - 3307:3306
